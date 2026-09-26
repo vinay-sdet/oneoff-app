@@ -34,7 +34,7 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/${{ secrets.PLAYWRIGHT_REPO_OWNER }}/first-project-playwright/dispatches \
+            https://api.github.com/repos/${{ secrets.PLAYWRIGHT_REPO_OWNER }}/oneoff-playwright/dispatches \
             -d '{
               "event_type": "app_deployed",
               "client_payload": {

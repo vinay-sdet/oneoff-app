@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: first-project
+  labels:
+    app: first-project
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: first-project
+  template:
+    metadata:
+      labels:
+        app: first-project
+    spec:
+      containers:
+        - name: first-project
+          image: ghcr.io/<your-user>/first-project:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80

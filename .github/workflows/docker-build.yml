@@ -1,0 +1,46 @@
+name: Build and publish app image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/first-project:${{ github.sha }} \
+                       -t ghcr.io/${{ github.repository_owner }}/first-project:latest .
+
+      - name: Push Docker image
+        run: docker push ghcr.io/${{ github.repository_owner }}/first-project --all-tags
+
+      - name: Trigger Playwright repository
+        env:
+          GH_TOKEN: ${{ secrets.PLAYWRIGHT_TRIGGER_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/${{ secrets.PLAYWRIGHT_REPO_OWNER }}/first-project-playwright/dispatches \
+            -d '{
+              "event_type": "app_deployed",
+              "client_payload": {
+                "image": "ghcr.io/${{ github.repository_owner }}/first-project:${{ github.sha }}",
+                "expected_title": "First Project",
+                "expected_text": "Hello World",
+                "app_url": "http://localhost:8080"
+              }
+            }'
